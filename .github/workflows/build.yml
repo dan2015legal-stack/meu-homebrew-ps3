@@ -10,11 +10,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Install PS3 toolchain
+    - name: Install PS3 prebuilt toolchain
       run: |
-        git clone https://github.com/ps3dev/ps3toolchain.git
-        cd ps3toolchain
-        ./toolchain.sh
+        sudo apt update
+        sudo apt install -y wget tar
+        wget https://github.com/ps3dev/ps3toolchain/releases/download/v1.0/ps3toolchain-linux.tar.gz
+        tar -xzf ps3toolchain-linux.tar.gz
+        echo "$PWD/ps3toolchain/bin" >> $GITHUB_PATH
 
     - name: Build
       run: |
