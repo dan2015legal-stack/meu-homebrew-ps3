@@ -1,0 +1,26 @@
+name: Build PS3 Homebrew
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install PS3 toolchain
+      run: |
+        git clone https://github.com/ps3dev/ps3toolchain.git
+        cd ps3toolchain
+        ./toolchain.sh
+
+    - name: Build
+      run: |
+        make
+
+    - name: Upload result
+      uses: actions/upload-artifact@v3
+      with:
+        name: EBOOT
+        path: EBOOT.elf
