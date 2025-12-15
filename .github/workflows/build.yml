@@ -1,29 +1,30 @@
 name: Build PS3 Homebrew
 
-on: [push]
+on:
+  push:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install PS3 prebuilt toolchain
-      run: |
-        sudo apt update
-        sudo apt install -y wget tar
-        wget https://github.com/ps3dev/ps3toolchain/releases/download/v1.0/ps3toolchain-linux.tar.gz
-        tar -xzf ps3toolchain-linux.tar.gz
-        echo "$PWD/ps3toolchain/bin" >> $GITHUB_PATH
+      - name: Install PS3 prebuilt toolchain
+        run: |
+          sudo apt update
+          sudo apt install -y wget tar
+          wget https://github.com/ps3dev/ps3toolchain/releases/download/v1.0/ps3toolchain-linux.tar.gz
+          tar -xzf ps3toolchain-linux.tar.gz
+          echo "$PWD/ps3toolchain/bin" >> $GITHUB_PATH
 
-    - name: Build
-      run: |
-        make
+      - name: Build
+        run: |
+          make
 
-    - name: Upload result
-      uses: actions/upload-artifact@v4
-      with:
-        name: EBOOT
-        path: EBOOT.elf
+      - name: Upload result
+        uses: actions/upload-artifact@v4
+        with:
+          name: EBOOT
+          path: EBOOT.elf
