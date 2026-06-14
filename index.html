@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Zen Sprout - Edição Atmosférica & Conquistas</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: #dfd5c6;
+            color: #3b473c;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        #game-container {
+            background-color: #fbf9f3;
+            width: 100%;
+            max-width: 420px;
+            border: 4px solid #3b473c;
+            border-radius: 28px;
+            padding: 18px;
+            box-shadow: 0 20px 40px rgba(59, 71, 60, 0.15);
+            transition: max-width 0.3s ease;
+        }
+
+        #start-screen {
+            text-align: center;
+            padding: 50px 10px;
+        }
+
+        #start-screen h1 {
+            font-size: 36px;
+            margin-bottom: 12px;
+            color: #4f6353;
+        }
+
+        #game-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        #left-column, #right-column {
+            width: 100%;
+        }
+
+        #hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            border-bottom: 2px dashed #cbd1c5;
+            padding-bottom: 12px;
+        }
+
+        #energy-counter { font-size: 24px; font-weight: bold; }
+        #eps-counter { font-size: 11px; color: #687a6b; text-align: right; line-height: 1.4; }
+
+        #weather-badge {
+            display: inline-block;
+            background: #e6dfd3;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-top: 4px;
+            border: 1px solid #3b473c;
+        }
+
+        .tabs-wrapper {
+            overflow-x: auto;
+            margin-bottom: 12px;
+        }
+        .tabs-wrapper::-webkit-scrollbar { height: 4px; }
+        .tabs-wrapper::-webkit-scrollbar-thumb { background: #cbd1c5; border-radius: 4px; }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            width: max-content;
+            padding-bottom: 4px;
+        }
+
+        .tab-btn {
+            background: #e6dfd3;
+            border: 2px solid #3b473c;
+            padding: 7px 11px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 11px;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: #7da380;
+            color: white;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .tab-btn.special-tab {
+            background: #fbf5e6;
+            border-color: #d49344;
+            color: #b07023;
+        }
+        .tab-btn.special-tab.active {
+            background: #d49344;
+            color: white;
+        }
+
+        canvas {
+            background-color: #faf6ed;
+            border: 3px solid #3b473c;
+            border-radius: 20px;
+            display: block;
+            margin: 0 auto;
+            cursor: pointer;
+            filter: url(#wobbly);
+            width: 100%;
+            max-width: 380px;
+            height: auto;
+            aspect-ratio: 33 / 26;
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.03);
+        }
+
+        .shop-panel {
+            max-height: 270px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .shop-panel::-webkit-scrollbar { width: 6px; }
+        .shop-panel::-webkit-scrollbar-thumb { background: #cbd1c5; border-radius: 10px; }
+
+        .shop-item {
+            background: #f5eedf;
+            border: 2px solid #3b473c;
+            border-radius: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .item-info { display: flex; flex-direction: column; max-width: 65%; }
+        .item-title { font-size: 12px; font-weight: bold; color: #2e382f; }
+        .item-desc { font-size: 10px; color: #687a6b; margin-top: 3px; }
+
+        .shop-btn {
+            background-color: #e09f67;
+            border: 2px solid #3b473c;
+            color: white;
+            padding: 9px 6px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #3b473c;
+            min-width: 95px;
+            text-align: center;
+        }
+
+        .shop-btn:active { transform: translateY(3px); box-shadow: none; }
+        .shop-btn:disabled { background-color: #dcd8cf; color: #a39f96; box-shadow: none; cursor: not-allowed; transform: none; }
+        .shop-btn.owned { background-color: #7da380; color: white; box-shadow: none; }
+        .shop-btn.premium-btn { background-color: #d49344; }
+
+        /* Conquistas Estilo Card */
+        .achiev-card {
+            background: #f0eae1;
+            border: 2px dashed #9ca69d;
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            opacity: 0.6;
+            transition: all 0.3s;
+        }
+        .achiev-card.unlocked {
+            border: 2px solid #4fa367;
+            background: #eef7f1;
+            opacity: 1;
+        }
+        .achiev-icon { font-size: 22px; }
+
+        .config-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f5eedf;
+            border: 2px solid #3b473c;
+            border-radius: 14px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .config-checkbox { width: 20px; height: 20px; cursor: pointer; }
+        .danger-btn { background-color: #e57c73; box-shadow: 0 3px 0 #3b473c; }
+
+        .big-btn {
+            background-color: #7da380;
+            color: white;
+            border: 3px solid #3b473c;
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #3b473c;
+        }
+        .big-btn:active { transform: translateY(4px); box-shadow: none; }
+
+        @media (min-width: 768px) {
+            #game-container { 
+                max-width: 1320px; 
+                padding: 36px; 
+            }
+            #game-layout { 
+                flex-direction: row; 
+                align-items: stretch; 
+                gap: 40px; 
+            }
+            #left-column { 
+                flex: 0 0 460px; 
+                display: flex; 
+                flex-direction: column; 
+                justify-content: flex-start;
+                gap: 16px;
+            }
+            #right-column { 
+                flex: 1; 
+                min-width: 0;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                border-left: 2px dashed #cbd1c5; 
+                padding-left: 32px;
+            }
+            #hud {
+                flex-shrink: 0;
+            }
+            canvas { 
+                width: 100%; 
+                aspect-ratio: 33/26;
+            }
+            .tabs-wrapper {
+                flex-shrink: 0;
+                margin-bottom: 0;
+            }
+            .shop-panel { 
+                max-height: 520px; 
+                flex: 1;
+                overflow-y: auto;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            #game-container { 
+                max-width: 1400px; 
+            }
+            #left-column { 
+                flex: 0 0 500px; 
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="start-screen">
+            <h1>🌱 Zen Sprout</h1>
+            <p>Monte seu jardim botânico minimalista e ascenda às estrelas.</p>
+            <br>
+            <button class="big-btn" id="start-btn">Entrar na Estufa</button>
+        </div>
+
+        <div id="game-ui" style="display: none;">
+            <div id="game-layout">
+                
+                <div id="left-column">
+                    <div id="hud">
+                        <div id="energy-counter">💧 <span id="energy-val">0</span><br><span id="gems-hud-val" style="font-size: 12px; color: #b07023; font-weight: normal;">✨ 0 Gemas</span></div>
+                        <div id="eps-counter">
+                            <span id="flower-name">🌱 Brotinho</span> <span id="flower-stage">(Fase 1/3)</span><br>
+                            ✨ +<span id="cpc-val">1</span>/clique | <span id="eps-val">0</span>/s <br>
+                            <div id="weather-badge">🌤️ Clima: Normal</div>
+                            <span id="rebirth-multiplier-hud" style="color:#d49344; font-weight:bold; font-size:10px; display:block; margin-top:2px;"></span>
+                        </div>
+                    </div>
+                    <canvas id="gameCanvas" width="330" height="260"></canvas>
+                </div>
+                
+                <div id="right-column">
+                    <div class="tabs-wrapper">
+                        <div class="tabs">
+                            <button class="tab-btn active" id="tab-up">🛠️ Upgrades</button>
+                            <button class="tab-btn" id="tab-fl">🌸 Sementes</button>
+                            <button class="tab-btn" id="tab-pet">🐾 Bichinhos</button>
+                            <button class="tab-btn" id="tab-bg">🖼️ Cenários</button>
+                            <button class="tab-btn" id="tab-mkt">🏪 Mercado</button>
+                            <button class="tab-btn" id="tab-ac">🏆 Conquistas</button>
+                            <button class="tab-btn special-tab" id="tab-rb">🌟 Rebirth</button>
+                            <button class="tab-btn" id="tab-cfg">⚙️ Opções</button>
+                        </div>
+                    </div>
+                    
+                    <!-- UPGRADES -->
+                    <div id="panel-upgrades" class="shop-panel">
+                        <div class="shop-item"><div class="item-info"><span class="item-title">💧 Regador</span><span class="item-desc">+1 por clique</span></div><button class="shop-btn" id="up-0">15</button></div>
+                        <div class="shop-item"><div class="item-info"><span class="item-title">☀️ Luz Solar</span><span class="item-desc">+1 gota/s</span></div><button class="shop-btn" id="up-1">60</button></div>
+                        <div class="shop-item"><div class="item-info"><span class="item-title">🍂 Adubo</span><span class="item-desc">+4 por clique</span></div><button class="shop-btn" id="up-2">250</button></div>
+                        <div class="shop-item"><div class="item-info"><span class="item-title">🐝 Colmeia</span><span class="item-desc">+8 gotas/s</span></div><button class="shop-btn" id="up-3">750</button></div>
+                        <div class="shop-item"><div class="item-info"><span class="item-title">🧪 Nutriente</span><span class="item-desc">+20 por clique</span></div><button class="shop-btn" id="up-4">3200</button></div>
+                        <div class="shop-item"><div class="item-info"><span class="item-title">🎵 Som Lo-Fi</span><span class="item-desc">+50 gotas/s</span></div><button class="shop-btn" id="up-5">8500</button></div>
+                    </div>
+
+                    <!-- SEMENTES -->
+                    <div id="panel-flowers" class="shop-panel" style="display: none;">
+                        <div class="shop-item"><div class="item-info"><span class="item-title">🌱 Brotinho</span><span class="item-desc">Planta inicial</span></div><button class="shop-btn owned" id="fl-0">Uso</button></div>
+                        <div class="shop-item"><div class="item-info"><span class="item-title">🪻 Lavanda</span><span class="item-desc">Bônus: +3/s</span></div><button class="shop-btn" id="fl-1">180</button></div>
+                        <div class="shop-item"><div class="item-info"><span class="item-title">🌻 Girassol</span><span class="item-desc">Bônus: +15/s</span></div><button class="shop-btn" id="fl-2">900</button></div>
+                        <div class="shop-item"><div class="item-info"><span class="item-title">🌵 Cacto</span><span class="item-desc">Bônus: +60/s</span></div><button class="shop-btn" id="fl-3">4500</button></div>
+                        <div class="shop-item"><div class="item-info"><span class="item-title">🪷 Vitória-Régia</span><span class="item-desc">Bônus: +180/s</span></div><button class="shop-btn" id="fl-4">18000</button></div>
+                        <div class="shop-item"><div class="item-info"><span class="item-title">🌳 Bonsai Ancestral</span><span class="item-desc">Bônus: +650/s</span></div><button class="shop-btn" id="fl-5">75000</button></div>
+                        <div class="shop-item"><div class="item-info"><span class="item-title">✨ Árvore da Vida</span><span class="item-desc">Bônus: +2500/s</span></div><button class="shop-btn" id="fl-6">350000</button></div>
+                    </div>
+
+                    <!-- BICHINHOS -->
+                    <div id="panel-pets" class="shop-panel" style="display: none;">
+                        <div class="shop-item"><div class="item-info"><span class="item-title">🐱 Gato de Guarda</span><span class="item-desc">Ajuda: +5 gotas/s</span></div><button class="shop-btn" id="pet-0">200</button></div>
+                        <div class="shop-item"><div class="item-info"><span class="item-title">🐶 Cão Companheiro</span><span class="item-desc">Ajuda: +25 gotas/s</span></div><button class="shop-btn" id="pet-1">1200</button></div>
+                        <div class="shop-item"><div class="item-info"><span class="item-title">🐭 Camundongo</span><span class="item-desc">Ajuda: +90 gotas/s</span></div><button class="shop-btn" id="pet-2">6000</button></div>
+                        <div class="shop-item"><div class="item-info"><span class="item-title">🦋 Borboleta</span><span class="item-desc">Ajuda: +220 gotas/s</span></div><button class="shop-btn" id="pet-3">22000</button></div>
+                        <div class="shop-item"><div class="item-info"><span class="item-title">🐝 Abelha Operária</span><span class="item-desc">Ajuda: +800 gotas/s</span></div><button class="shop-btn" id="pet-4">95000</button></div>
+                    </div>
+
+                    <!-- CENÁRIOS -->
+                    <div id="panel-bg" class="shop-panel" style="display: none;">
+                        <div class="shop-item"><div class="item-info"><span class="item-title">🎨 Minimalista Clássico</span><span class="item-desc">Fundo padrão limpo</span></div><button class="shop-btn owned" id="bg-0">Uso</button></div>
+                        <div class="shop-item"><div class="item-info"><span class="item-title">🌿 Estufa Botânica</span><span class="item-desc">Custo: 400 gotas</span></div><button class="shop-btn" id="bg-1">400</button></div>
+                        <div class="shop-item"><div class="item-info"><span class="item-title">🌌 Jardim Noturno</span><span class="item-desc">Custo: 2500 gotas</span></div><button class="shop-btn" id="bg-2">2500</button></div>
+                        <div class="shop-item"><div class="item-info"><span class="item-title">🌅 Pôr do Sol Zen</span><span class="item-desc">Custo: 12000 gotas</span></div><button class="shop-btn" id="bg-3">12000</button></div>
+                    </div>
+
+                    <!-- MERCADO -->
+                    <div id="panel-market" class="shop-panel" style="display: none;">
+                        <div class="shop-item">
+                            <div class="item-info"><span class="item-title">💰 Vender Planta Atual</span><span class="item-desc">Exige Fase 3. Dá gotas bônus.</span></div>
+                            <button class="shop-btn" id="mkt-sell">Vender</button>
+                        </div>
+                        <div class="shop-item">
+                            <div class="item-info"><span class="item-title">🧪 Injetor de Cliques</span><span class="item-desc">Ganha +25 cliques instantâneos na planta</span></div>
+                            <button class="shop-btn" id="mkt-buy-clicks">Custo: 150</button>
+                        </div>
+                    </div>
+
+                    <!-- CONQUISTAS -->
+                    <div id="panel-achievs" class="shop-panel" style="display: none;">
+                        <div class="achiev-card" id="ac-0"><div class="achiev-icon">🌱</div><div><div style="font-weight:bold; font-size:12px;">Primeiro Broto</div><div style="font-size:10px; color:#555;">Chegue a 100 gotas totais</div></div></div>
+                        <div class="achiev-card" id="ac-1"><div class="achiev-icon">🪻</div><div><div style="font-weight:bold; font-size:12px;">Jardineiro Casual</div><div style="font-size:10px; color:#555;">Desbloqueie a Lavanda</div></div></div>
+                        <div class="achiev-card" id="ac-2"><div class="achiev-icon">🐱</div><div><div style="font-weight:bold; font-size:12px;">Amigo dos Animais</div><div style="font-size:10px; color:#555;">Compre seu primeiro Bichinho</div></div></div>
+                        <div class="achiev-card" id="ac-3"><div class="achiev-icon">🌸</div><div><div style="font-weight:bold; font-size:12px;">Pleno Florescer</div><div style="font-size:10px; color:#555;">Atinja a Fase 3 de qualquer planta</div></div></div>
+                        <div class="achiev-card" id="ac-4"><div class="achiev-icon">🌟</div><div><div style="font-weight:bold; font-size:12px;">Ascensão Espiritual</div><div style="font-size:10px; color:#555;">Faça o primeiro Rebirth</div></div></div>
+                        <div class="achiev-card" id="ac-5"><div class="achiev-icon">👑</div><div><div style="font-weight:bold; font-size:12px;">Magnata Botânico</div><div style="font-size:10px; color:#555;">Acumule 50.000 gotas de uma vez</div></div></div>
+                    </div>
+
+                    <!-- REBIRTH -->
+                    <div id="panel-rebirth" class="shop-panel" style="display: none;">
+                        <div style="padding: 10px; background: #fdf5e6; border: 2px dashed #d49344; border-radius: 12px; margin-bottom: 12px; text-align: center;">
+                            <span style="font-size: 12px; font-weight: bold; color: #b07023;">🌟 Altar da Ascensão Cósmica</span>
+                            <p style="font-size: 10px; margin-top: 4px; color: #6e5945;">Sacrifique suas sementes por **Gemas Estelares** permanentes e bônus global de produção.</p>
+                        </div>
+                        <div class="shop-item" style="border-color: #d49344; background-color: #fffdf9;">
+                            <div class="item-info">
+                                <span class="item-title" style="color: #b07023;">✨ Transcender Agora</span>
+                                <span class="item-desc">Ganha: <b id="rb-gain-estimate">0 Gemas</b><br>Bônus permanente: <b>+50% por Rebirth</b>.</span>
+                            </div>
+                            <button class="shop-btn premium-btn" id="rb-action-btn">Exige 50k</button>
+                        </div>
+
+                        <div style="font-size: 11px; font-weight: bold; margin: 12px 0 6px 4px; color: #b07023;">💎 Loja Cósmica Permanente:</div>
+                        <div class="shop-item" style="border-color: #cbd1c5;"><div class="item-info"><span class="item-title">⚡ Semente Crítica</span><span class="item-desc">12% chance de clique dar 5x mais gotas.</span></div><button class="shop-btn premium-btn" id="pm-up-0">Custo: 1 Gema</button></div>
+                        <div class="shop-item" style="border-color: #cbd1c5;"><div class="item-info"><span class="item-title">⏳ Benção de Gaia</span><span class="item-desc">Multiplica a eficácia de todos os Bichinhos em +25%.</span></div><button class="shop-btn premium-btn" id="pm-up-1">Custo: 2 Gemas</button></div>
+
+                        <div style="font-size: 11px; text-align: center; color: #555; margin-top: 12px; border-top: 1px dashed #ddd; padding-top: 8px;">
+                            Rebirths Realizados: <span id="rb-count-val" style="font-weight:bold;">0</span><br>
+                            Bônus Espiritual Ativo: <span id="rb-bonus-val" style="font-weight:bold; color: #4fa367;">+0%</span>
+                        </div>
+                    </div>
+
+                    <!-- CONFIGURAÇÕES -->
+                    <div id="panel-config" class="shop-panel" style="display: none;">
+                        <div class="config-row">
+                            <span>🎵 Áudio do Jogo</span>
+                            <input type="checkbox" id="cfg-audio" class="config-checkbox" checked>
+                        </div>
+                        <div class="config-row" style="justify-content: center; background: none; border: none; padding-top: 15px;">
+                            <button class="shop-btn danger-btn" id="cfg-reset">Apagar Save</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+        <defs>
+            <filter id="wobbly">
+                <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.2" xChannelSelector="R" yChannelSelector="G" id="wobble-map" />
+            </filter>
+        </defs>
+    </svg>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const startScreen = document.getElementById('start-screen');
+        const gameUi = document.getElementById('game-ui');
+        const startBtn = document.getElementById('start-btn');
+        const energyVal = document.getElementById('energy-val');
+        const gemsHudVal = document.getElementById('gems-hud-val');
+        const epsVal = document.getElementById('eps-val');
+        const cpcVal = document.getElementById('cpc-val');
+        const flowerNameDisplay = document.getElementById('flower-name');
+        const flowerStageDisplay = document.getElementById('flower-stage');
+        const weatherBadge = document.getElementById('weather-badge');
+        const audioCheckbox = document.getElementById('cfg-audio');
+        const resetBtn = document.getElementById('cfg-reset');
+        
+        const rbActionBtn = document.getElementById('rb-action-btn');
+        const rbGainEstimate = document.getElementById('rb-gain-estimate');
+        const rbCountVal = document.getElementById('rb-count-val');
+        const rbBonusVal = document.getElementById('rb-bonus-val');
+        const rbMultiplierHud = document.getElementById('rebirth-multiplier-hud');
+        
+        const pmUp0Btn = document.getElementById('pm-up-0');
+        const pmUp1Btn = document.getElementById('pm-up-1');
+
+        const TOTAL_PLANTS = 7;
+        const TOTAL_PETS = 5;
+        const TOTAL_BGS = 4;
+        const REBIRTH_BASE_COST = 50000;
+
+        // ESTRUTURA MATRIZ - Se mudar no futuro, o Deep Merge protege o save antigo
+        const defaultState = {
+            energy: 0,
+            gems: 0,
+            clickPower: 1,
+            passiveIncome: 0,
+            activeSkin: 0,
+            activeBg: 0,
+            rebirths: 0,
+            critUnlocked: false,
+            gaiaBlessing: 0,
+            upgradesOwned: [0, 0, 0, 0, 0, 0],
+            upCosts: [15, 60, 250, 750, 3200, 8500],
+            flowersOwned: [true, false, false, false, false, false, false],
+            flCosts: [0, 180, 900, 4500, 18000, 75000, 350000],
+            plantClicks: [0, 0, 0, 0, 0, 0, 0],
+            petsOwned: [false, false, false, false, false],
+            petCosts: [200, 1200, 6000, 22000, 95000],
+            bgsOwned: [true, false, false, false],
+            bgCosts: [0, 400, 2500, 12000],
+            achievements: [false, false, false, false, false, false]
+        };
+
+        let state = JSON.parse(JSON.stringify(defaultState));
+        let audioEnabled = true;
+        let currentWeather = "normal"; // normal, chuva, sol
+
+        const flowerNames = [
+            "🌱 Brotinho", "🪻 Lavanda", "🌻 Girassol", "🌵 Cacto", 
+            "🪷 Vitória-Régia", "🌳 Bonsai", "✨ Árvore da Vida"
+        ];
+        
+        let entities = [];
+        let particles = [];
+        let plantScale = 1.0;
+        let audioCtx = null;
+
+        function saveGame() { localStorage.setItem('zen_sprout_atmos_save', JSON.stringify(state)); }
+        
+        // FUSÃO INTELIGENTE DE SAVE (Deep Merge / Anti-Wipe)
+        function loadGame() {
+            const savedData = localStorage.getItem('zen_sprout_atmos_save');
+            if (savedData) {
+                try {
+                    const parsed = JSON.parse(savedData);
+                    if (parsed && typeof parsed === 'object') {
+                        Object.keys(defaultState).forEach(key => {
+                            if (parsed[key] === undefined) {
+                                parsed[key] = JSON.parse(JSON.stringify(defaultState[key]));
+                            } else if (Array.isArray(defaultState[key]) && Array.isArray(parsed[key])) {
+                                while (parsed[key].length < defaultState[key].length) {
+                                    parsed[key].push(defaultState[key][parsed[key].length]);
+                                }
+                            }
+                        });
+                        state = parsed;
+                    }
+                } catch(e) { console.error("Erro na leitura do save.", e); }
+            }
+            spawnPurchasedPets();
+            checkAchievements();
+        }
+
+        function spawnPurchasedPets() {
+            entities = [];
+            const isFlying = [false, false, false, true, true];
+            for(let i=0; i<TOTAL_PETS; i++){
+                if(state.petsOwned[i]){
+                    entities.push({
+                        id: i,
+                        flying: isFlying[i],
+                        x: Math.random() * (canvas.width - 60) + 30,
+                        y: isFlying[i] ? Math.random() * 80 + 40 : canvas.height - 30,
+                        vx: (Math.random() - 0.5) * 0.7,
+                        vy: isFlying[i] ? (Math.random() - 0.5) * 0.4 : 0,
+                        bounceTime: Math.random() * 100
+                    });
+                }
+            }
+        }
+
+        function createParticle(x, y, type) {
+            particles.push({
+                x: x,
+                y: y,
+                vx: (Math.random() - 0.5) * 4,
+                vy: -Math.random() * 3 - 2,
+                alpha: 1.0,
+                size: Math.random() * 3 + 2,
+                type: type, // 'water' ou 'leaf'
+                angle: Math.random() * Math.PI
+            });
+        }
+
+        function updateWeather() {
+            let rand = Math.random();
+            if (rand < 0.50) {
+                currentWeather = "normal";
+                weatherBadge.innerText = "🌤️ Clima: Normal";
+                weatherBadge.style.background = "#e6dfd3";
+            } else if (rand < 0.80) {
+                currentWeather = "chuva";
+                weatherBadge.innerText = "🌧️ Clima: Chuva (+50% Passivo)";
+                weatherBadge.style.background = "#dbe7f5";
+            } else {
+                currentWeather = "sol";
+                weatherBadge.innerText = "☀️ Clima: Sol (+50% Clique)";
+                weatherBadge.style.background = "#f7ebd2";
+            }
+            updateUI();
+        }
+        setInterval(updateWeather, 30000);
+
+        function checkAchievements() {
+            if (!state.achievements[0] && state.energy >= 100) { state.achievements[0] = true; }
+            if (!state.achievements[1] && state.flowersOwned[1]) { state.achievements[1] = true; }
+            if (!state.achievements[2] && state.petsOwned.includes(true)) { state.achievements[2] = true; }
+            
+            let stage3Count = 0;
+            for(let i=0; i<TOTAL_PLANTS; i++) { if(getStage(state.plantClicks[i]) === 3) stage3Count++; }
+            if (!state.achievements[3] && stage3Count > 0) { state.achievements[3] = true; }
+            
+            if (!state.achievements[4] && state.rebirths > 0) { state.achievements[4] = true; }
+            if (!state.achievements[5] && state.energy >= 50000) { state.achievements[5] = true; }
+
+            for (let i = 0; i < 6; i++) {
+                const card = document.getElementById(`ac-${i}`);
+                if (card && state.achievements[i]) card.classList.add('unlocked');
+            }
+        }
+
+        function renderVectorPet(id) {
+            ctx.lineWidth = 2.5; ctx.strokeStyle = '#3b473c';
+            switch(id) {
+                case 0:
+                    ctx.fillStyle = '#dfb18a';
+                    ctx.beginPath(); ctx.moveTo(-8, -10); ctx.lineTo(-12, -18); ctx.lineTo(-2, -12); ctx.fill(); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(8, -10); ctx.lineTo(12, -18); ctx.lineTo(2, -12); ctx.fill(); ctx.stroke();
+                    ctx.beginPath(); ctx.arc(0, -6, 10, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    ctx.beginPath(); ctx.ellipse(0, 4, 11, 8, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    ctx.fillStyle = '#3b473c'; ctx.beginPath(); ctx.arc(-4, -8, 1.5, 0, Math.PI*2); ctx.arc(4, -8, 1.5, 0, Math.PI*2); ctx.fill();
+                    break;
+                case 1:
+                    ctx.fillStyle = '#c79d71';
+                    ctx.beginPath(); ctx.ellipse(0, 4, 12, 9, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    ctx.beginPath(); ctx.arc(0, -6, 9, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    ctx.fillStyle = '#aa8056'; ctx.beginPath(); ctx.ellipse(-9, -6, 3, 6, 0.2, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    ctx.beginPath(); ctx.ellipse(9, -6, 3, 6, -0.2, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    ctx.fillStyle = '#3b473c'; ctx.beginPath(); ctx.arc(0, -4, 2, 0, Math.PI*2); ctx.fill();
+                    break;
+                case 2:
+                    ctx.fillStyle = '#b5b5b5';
+                    ctx.beginPath(); ctx.arc(-7, -12, 5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    ctx.beginPath(); ctx.arc(7, -12, 5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    ctx.beginPath(); ctx.ellipse(0, 2, 10, 8, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    ctx.beginPath(); ctx.ellipse(0, -6, 7, 7, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    break;
+                case 3:
+                    ctx.fillStyle = '#6fa3b5';
+                    ctx.beginPath(); ctx.ellipse(-8, -6, 9, 7, -0.4, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    ctx.beginPath(); ctx.ellipse(8, -6, 9, 7, 0.4, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    ctx.fillStyle = '#425447'; ctx.beginPath(); ctx.ellipse(0, -1, 2.5, 9, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    break;
+                case 4:
+                    ctx.fillStyle = '#f0c756';
+                    ctx.beginPath(); ctx.ellipse(0, 0, 11, 8, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    ctx.fillStyle = '#3b473c'; ctx.fillRect(-3, -7, 2, 14); ctx.fillRect(3, -7, 2, 14);
+                    break;
+            }
+        }
+
+        const notes = [146.83, 164.81, 185.00, 220.00, 246.94, 293.66, 329.63]; 
+        function initAudio() {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                setInterval(() => {
+                    if (!audioCtx || !audioEnabled || Math.random() > 0.5) return;
+                    let now = audioCtx.currentTime;
+                    let randomNote = notes[Math.floor(Math.random() * notes.length)];
+                    let osc = audioCtx.createOscillator(); let g = audioCtx.createGain();
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(randomNote, now);
+                    g.gain.setValueAtTime(0, now); g.gain.linearRampToValueAtTime(0.05, now + 0.1); g.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+                    osc.connect(g); g.connect(audioCtx.destination); osc.start(now); osc.stop(now + 1.5);
+                }, 1100);
+            } catch(e) {}
+        }
+
+        function playWaterSFX() {
+            if (!audioCtx || !audioEnabled) return;
+            let osc = audioCtx.createOscillator(); let g = audioCtx.createGain();
+            osc.type = 'sine'; osc.frequency.setValueAtTime(550, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1100, audioCtx.currentTime + 0.05);
+            g.gain.setValueAtTime(0.10, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
+            osc.connect(g); g.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.06);
+        }
+
+        const tabs = {
+            up: { btn: document.getElementById('tab-up'), panel: document.getElementById('panel-upgrades') },
+            fl: { btn: document.getElementById('tab-fl'), panel: document.getElementById('panel-flowers') },
+            pet: { btn: document.getElementById('tab-pet'), panel: document.getElementById('panel-pets') },
+            bg: { btn: document.getElementById('tab-bg'), panel: document.getElementById('panel-bg') },
+            mkt: { btn: document.getElementById('tab-mkt'), panel: document.getElementById('panel-market') },
+            ac: { btn: document.getElementById('tab-ac'), panel: document.getElementById('panel-achievs') },
+            rb: { btn: document.getElementById('tab-rb'), panel: document.getElementById('panel-rebirth') },
+            cfg: { btn: document.getElementById('tab-cfg'), panel: document.getElementById('panel-config') }
+        };
+
+        function switchTab(activeKey) {
+            Object.keys(tabs).forEach(key => {
+                if(key === activeKey) {
+                    tabs[key].btn.classList.add('active'); tabs[key].panel.style.display = 'block';
+                } else {
+                    tabs[key].btn.classList.remove('active'); tabs[key].panel.style.display = 'none';
+                }
+            });
+            if(activeKey === 'ac') checkAchievements();
+        }
+        Object.keys(tabs).forEach(key => { tabs[key].btn.onclick = () => switchTab(key); });
+
+        audioCheckbox.onchange = (e) => { audioEnabled = e.target.checked; };
+        resetBtn.onclick = () => {
+            if(confirm("Apagar todo o progresso eternamente?")) {
+                localStorage.removeItem('zen_sprout_atmos_save');
+                state = JSON.parse(JSON.stringify(defaultState));
+                switchTab('up'); spawnPurchasedPets(); updateUI();
+            }
+        };
+
+        function getStage(clicks) {
+            if (clicks >= 120) return 3; 
+            if (clicks >= 40) return 2;  
+            return 1;                    
+        }
+
+        function getRebirthMultiplier() { return 1 + (state.rebirths * 0.5); }
+        function getGigaPetMultiplier() { return 1 + (state.gaiaBlessing * 0.25); }
+
+        function renderPlantSpecie(id, stage) {
+            ctx.lineWidth = 4;
+            if (stage === 1 && id !== 4) {
+                ctx.strokeStyle = '#586e59'; ctx.fillStyle = '#7da380';
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(-5, -8, 0, -15); ctx.stroke();
+                ctx.beginPath(); ctx.ellipse(0, -15, 4, 2, -0.3, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                return;
+            }
+            switch(id) {
+                case 0: 
+                    ctx.strokeStyle = '#586e59'; ctx.fillStyle = '#7da380';
+                    if (stage === 2) {
+                        ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(-6, -12, -2, -24); ctx.stroke();
+                        ctx.beginPath(); ctx.ellipse(-2, -24, 6, 3, -0.2, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    } else {
+                        ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(-8, -15, 0, -30); ctx.stroke();
+                        ctx.beginPath(); ctx.ellipse(0, -30, 8, 5, -0.3, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    }
+                    break;
+                case 1: 
+                    ctx.strokeStyle = '#536b51'; ctx.fillStyle = '#9b82bf';
+                    let h1 = stage === 2 ? -32 : -50;
+                    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, h1); ctx.stroke();
+                    for(let i=0; i<(stage===2?3:5); i++) {
+                        ctx.beginPath(); ctx.arc(-4, -12 - (i*6), 3.5, 0, Math.PI*2); ctx.arc(4, -12 - (i*6), 3.5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    }
+                    break;
+                case 2: 
+                    ctx.strokeStyle = '#617c5f'; ctx.fillStyle = '#f0c265';
+                    let h2 = stage === 2 ? -30 : -48;
+                    ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(6, -15, 0, h2); ctx.stroke();
+                    ctx.translate(0, h2);
+                    let petals = stage === 2 ? 5 : 8;
+                    for (let i = 0; i < petals; i++) {
+                        ctx.rotate((Math.PI * 2) / petals); ctx.beginPath(); ctx.ellipse(10, 0, 6, 3, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    }
+                    ctx.fillStyle = '#6e5545'; ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    break;
+                case 3: 
+                    ctx.fillStyle = '#4a6b4c'; ctx.strokeStyle = '#3b473c';
+                    if(stage === 2) {
+                        ctx.beginPath(); ctx.rect(-7, -40, 14, 40); ctx.fill(); ctx.stroke();
+                    } else {
+                        ctx.beginPath(); ctx.rect(-10, -55, 20, 55); ctx.fill(); ctx.stroke();
+                        ctx.fillStyle = '#e57c73'; ctx.beginPath(); ctx.arc(0, -55, 4, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    }
+                    break;
+                case 4: 
+                    ctx.fillStyle = '#638c67'; ctx.strokeStyle = '#3b473c';
+                    if (stage === 1) { ctx.beginPath(); ctx.ellipse(0, 2, 14, 5, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke(); }
+                    else if (stage === 2) { ctx.beginPath(); ctx.ellipse(0, 2, 25, 7, 0, 0, Math.PI * 1.8); ctx.fill(); ctx.stroke(); }
+                    else { 
+                        ctx.beginPath(); ctx.ellipse(0, 2, 34, 9, 0, 0, Math.PI * 1.85); ctx.fill(); ctx.stroke();
+                        ctx.fillStyle = '#f7bad4'; ctx.beginPath(); ctx.arc(5, -4, 6, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    }
+                    break;
+                case 5: 
+                    ctx.strokeStyle = '#7a5c43'; ctx.lineWidth = 6;
+                    if(stage === 2) {
+                        ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(-15, -15, -5, -30); ctx.stroke();
+                        ctx.fillStyle = '#517355'; ctx.beginPath(); ctx.arc(-5, -32, 12, 0, Math.PI*2); ctx.fill();
+                    } else {
+                        ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(-25, -20, -10, -42); ctx.stroke();
+                        ctx.fillStyle = '#3f5c43'; ctx.beginPath(); ctx.arc(-10, -44, 16, 0, Math.PI*2); ctx.fill();
+                    }
+                    break;
+                case 6: 
+                    ctx.strokeStyle = '#544336'; ctx.lineWidth = 7;
+                    let h6 = stage === 2 ? -35 : -55;
+                    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0, h6); ctx.stroke();
+                    ctx.fillStyle = '#658c54';
+                    ctx.beginPath(); ctx.arc(0, h6, stage===2?18:24); ctx.fill();
+                    break;
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            plantScale += (1.0 - plantScale) * 0.12;
+
+            if(state.activeBg === 0) { ctx.fillStyle = '#faf6ed'; ctx.fillRect(0,0,canvas.width,canvas.height); }
+            else if(state.activeBg === 1) {
+                ctx.fillStyle = '#eef5f0'; ctx.fillRect(0,0,canvas.width,canvas.height);
+                ctx.strokeStyle = '#cbd6ce'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(80, 0); ctx.lineTo(80, canvas.height); ctx.moveTo(250, 0); ctx.lineTo(250, canvas.height); ctx.stroke();
+            } else if(state.activeBg === 2) {
+                ctx.fillStyle = '#1e2530'; ctx.fillRect(0,0,canvas.width,canvas.height);
+            } else if(state.activeBg === 3) {
+                let grad = ctx.createLinearGradient(0,0,0,canvas.height); grad.addColorStop(0, '#f2af94'); grad.addColorStop(1, '#ebd1b0');
+                ctx.fillStyle = grad; ctx.fillRect(0,0,canvas.width,canvas.height);
+            }
+
+            // Clima Efeitos Atmosféricos Visuais no Canvas
+            if(currentWeather === "chuva" && Math.random() < 0.25) {
+                createParticle(Math.random() * canvas.width, 0, 'water');
+            }
+
+            ctx.lineWidth = 4; ctx.strokeStyle = state.activeBg === 2 ? '#3b4657' : '#cbd1c5';
+            ctx.beginPath(); ctx.moveTo(10, canvas.height - 30); ctx.lineTo(canvas.width - 10, canvas.height - 30); ctx.stroke();
+
+            // Sementes Coletadas no Fundo
+            let leftCount = 0; let rightCount = 0;
+            for(let i = 0; i < TOTAL_PLANTS; i++) {
+                if(state.flowersOwned[i] && i !== state.activeSkin) {
+                    ctx.save();
+                    let posX = ((leftCount + rightCount) % 2 === 0) ? 45 + (leftCount * 55) : (canvas.width - 45) - (rightCount * 55);
+                    if ((leftCount + rightCount) % 2 === 0) leftCount++; else rightCount++;
+                    
+                    ctx.translate(posX, canvas.height - 30);
+                    ctx.scale(0.85, 0.85);
+
+                    ctx.lineWidth = 4; ctx.strokeStyle = '#3b473c'; ctx.fillStyle = '#c5835c';
+                    ctx.beginPath(); ctx.moveTo(-16, 0); ctx.lineTo(16, 0); ctx.lineTo(11, 22); ctx.lineTo(-11, 22); ctx.closePath(); ctx.fill(); ctx.stroke();
+
+                    renderPlantSpecie(i, getStage(state.plantClicks[i]));
+                    ctx.restore();
+                }
+            }
+
+            // Pets Animados
+            entities.forEach(ent => {
+                ent.bounceTime += 0.05; ent.x += ent.vx; ent.y += ent.vy;
+                if(ent.x < 20 || ent.x > canvas.width - 20) ent.vx *= -1;
+                if(ent.flying && (ent.y < 30 || ent.y > 120)) ent.vy *= -1;
+
+                // Pets dão partículas de vez em quando
+                if(Math.random() < 0.006) createParticle(ent.x, ent.y, 'leaf');
+
+                ctx.save();
+                let jump = ent.flying ? Math.sin(ent.bounceTime) * 5 : -Math.abs(Math.sin(ent.bounceTime) * 4);
+                ctx.translate(ent.x, ent.y + jump);
+                if(ent.vx < 0) ctx.scale(-1, 1);
+                renderVectorPet(ent.id);
+                ctx.restore();
+            });
+
+            // Loop de Partículas (Gotas e Folhas com Física)
+            for(let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx; p.y += p.vy;
+                p.vy += 0.15; // gravidade
+                p.alpha -= 0.02;
+                if(p.type === 'leaf') p.angle += 0.05;
+
+                if(p.alpha <= 0) { particles.splice(i, 1); continue; }
+
+                ctx.save();
+                ctx.globalAlpha = p.alpha;
+                if(p.type === 'water') {
+                    ctx.fillStyle = '#83aed4';
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
+                } else {
+                    ctx.fillStyle = '#94ba97'; ctx.strokeStyle = '#3b473c'; ctx.lineWidth = 1;
+                    ctx.translate(p.x, p.y); ctx.rotate(p.angle);
+                    ctx.beginPath(); ctx.ellipse(0, 0, p.size*1.6, p.size, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            // Vaso Central
+            ctx.save();
+            ctx.translate(canvas.width / 2, canvas.height - 45);
+            ctx.scale(plantScale, plantScale);
+            ctx.lineWidth = 4; ctx.strokeStyle = '#3b473c'; ctx.fillStyle = '#db9672';
+            ctx.beginPath(); ctx.moveTo(-28, 0); ctx.lineTo(28, 0); ctx.lineTo(20, 32); ctx.lineTo(-20, 32); ctx.closePath(); ctx.fill(); ctx.stroke();
+
+            renderPlantSpecie(state.activeSkin, getStage(state.plantClicks[state.activeSkin]));
+            ctx.restore();
+
+            requestAnimationFrame(draw);
+        }
+
+        function calculateGemsToEarn() {
+            if (state.energy < REBIRTH_BASE_COST) return 0;
+            return Math.floor(Math.sqrt(state.energy / REBIRTH_BASE_COST));
+        }
+
+        function doClick(e) {
+            if(e) e.preventDefault();
+            let baseAmt = state.clickPower;
+            
+            // Bônus Climático de Clique
+            if(currentWeather === "sol") baseAmt = Math.round(baseAmt * 1.5);
+
+            if (state.critUnlocked && Math.random() < 0.12) {
+                baseAmt *= 5; plantScale = 1.35;
+                for(let i=0; i<10; i++) createParticle(canvas.width/2, canvas.height - 70, 'leaf');
+            } else {
+                plantScale = 1.18;
+                createParticle(canvas.width/2, canvas.height - 60, Math.random() > 0.4 ? 'water' : 'leaf');
+            }
+
+            state.energy += Math.round(baseAmt * getRebirthMultiplier());
+            state.plantClicks[state.activeSkin] += 1; 
+            playWaterSFX(); checkAchievements(); updateUI(); saveGame();
+        }
+        
+        canvas.addEventListener('touchstart', doClick, { passive: false });
+        canvas.addEventListener('mousedown', function(e) { if (!('ontouchstart' in window)) doClick(e); });
+        
+        setInterval(() => { 
+            if (state.passiveIncome > 0) { 
+                let petBonus = getGigaPetMultiplier();
+                let weatherMult = (currentWeather === "chuva") ? 1.5 : 1.0;
+                
+                state.energy += Math.round(((state.passiveIncome * petBonus) * weatherMult) * getRebirthMultiplier()); 
+                checkAchievements(); updateUI(); saveGame(); 
+            } 
+        }, 1000);
+
+        function updateUI() {
+            let mult = getRebirthMultiplier();
+            let petMult = getGigaPetMultiplier();
+            let weatherPassMult = (currentWeather === "chuva") ? 1.5 : 1.0;
+            let weatherCliMult = (currentWeather === "sol") ? 1.5 : 1.0;
+            
+            energyVal.innerText = state.energy;
+            gemsHudVal.innerText = `✨ ${state.gems} Gemas Estelares`;
+            epsVal.innerText = Math.round(((state.passiveIncome * petMult) * weatherPassMult) * mult);
+            cpcVal.innerText = Math.round((state.clickPower * weatherCliMult) * mult);
+            
+            let curClicks = state.plantClicks[state.activeSkin];
+            let stage = getStage(curClicks);
+            flowerNameDisplay.innerText = flowerNames[state.activeSkin];
+            flowerStageDisplay.innerText = `(Fase ${stage}/3 - ${curClicks} Cliques)`;
+
+            if(state.rebirths > 0) {
+                rbMultiplierHud.innerText = `🌟 Bônus Divino: +${state.rebirths * 50}%`;
+            } else {
+                rbMultiplierHud.innerText = "";
+            }
+
+            let gemsToEarn = calculateGemsToEarn();
+            rbCountVal.innerText = state.rebirths;
+            rbBonusVal.innerText = `+${state.rebirths * 50}%`;
+            rbGainEstimate.innerText = `${gemsToEarn} Gemas`;
+            
+            if (state.energy >= (REBIRTH_BASE_COST * Math.pow(1.8, state.rebirths))) {
+                rbActionBtn.disabled = false; rbActionBtn.innerText = "Transcender!";
+            } else {
+                rbActionBtn.disabled = true; rbActionBtn.innerText = `Bloqueado`;
+            }
+
+            if (state.critUnlocked) {
+                pmUp0Btn.innerText = "MAXOUT"; pmUp0Btn.disabled = true;
+            } else {
+                pmUp0Btn.innerText = "Comprar (1 Gema)"; pmUp0Btn.disabled = state.gems < 1;
+            }
+            
+            let nextGaiaCost = Math.round(2 * Math.pow(1.5, state.gaiaBlessing));
+            pmUp1Btn.innerText = `Nível ${state.gaiaBlessing} (Custo: ${nextGaiaCost} G.)`;
+            pmUp1Btn.disabled = state.gems < nextGaiaCost;
+
+            for(let i=0; i<6; i++) {
+                const btn = document.getElementById(`up-${i}`);
+                if(btn) { btn.innerText = `${state.upCosts[i]}`; btn.disabled = state.energy < state.upCosts[i]; }
+            }
+            for(let i=0; i<TOTAL_PLANTS; i++) {
+                const btn = document.getElementById(`fl-${i}`); if(!btn) continue;
+                if (state.activeSkin === i) { btn.innerText = "Uso"; btn.className = "shop-btn owned"; btn.disabled = true; }
+                else if (state.flowersOwned[i]) { btn.innerText = "Cultivar"; btn.className = "shop-btn"; btn.disabled = false; }
+                else { btn.innerText = `${state.flCosts[i]}`; btn.className = "shop-btn"; btn.disabled = state.energy < state.flCosts[i]; }
+            }
+            for(let i=0; i<TOTAL_PETS; i++) {
+                const btn = document.getElementById(`pet-${i}`); if(!btn) continue;
+                if(state.petsOwned[i]) { btn.innerText = "Adquirido"; btn.className = "shop-btn owned"; btn.disabled = true; }
+                else { btn.innerText = `${state.petCosts[i]}`; btn.disabled = state.energy < state.petCosts[i]; }
+            }
+            for(let i=0; i<TOTAL_BGS; i++) {
+                const btn = document.getElementById(`bg-${i}`); if(!btn) continue;
+                if(state.activeBg === i) { btn.innerText = "Uso"; btn.className = "shop-btn owned"; btn.disabled = true; }
+                else if(state.bgsOwned[i]) { btn.innerText = "Equipar"; btn.className = "shop-btn"; btn.disabled = false; }
+                else { btn.innerText = `${state.bgCosts[i]}`; btn.disabled = state.energy < state.bgCosts[i]; }
+            }
+            const sellBtn = document.getElementById('mkt-sell');
+            if(sellBtn) {
+                if(stage === 3) { sellBtn.disabled = false; sellBtn.innerText = "Vender (+" + (500 + (state.activeSkin * 400)) + ")"; }
+                else { sellBtn.disabled = true; sellBtn.innerText = "Fase 3 Exigida"; }
+            }
+            const clickInjectBtn = document.getElementById('mkt-buy-clicks');
+            if(clickInjectBtn) clickInjectBtn.disabled = state.energy < 150;
+        }
+
+        rbActionBtn.onclick = () => {
+            let gemsEarned = calculateGemsToEarn();
+            if(gemsEarned > 0) {
+                if(confirm(`Ascender e abandonar este plano físico? Você ganhará bônus permanente e extrairá ${gemsEarned} Gemas!`)) {
+                    state.rebirths += 1;
+                    state.gems += gemsEarned;
+                    
+                    state.energy = 0;
+                    state.clickPower = 1;
+                    state.passiveIncome = 0;
+                    state.activeSkin = 0;
+                    state.upgradesOwned = [0, 0, 0, 0, 0, 0];
+                    state.upCosts = [15, 60, 250, 750, 3200, 8500];
+                    state.flowersOwned = [true, false, false, false, false, false, false];
+                    state.plantClicks = [0, 0, 0, 0, 0, 0, 0];
+                    state.petsOwned = [false, false, false, false, false];
+                    
+                    spawnPurchasedPets(); checkAchievements(); switchTab('rb'); updateUI(); saveGame();
+                }
+            }
+        };
+
+        pmUp0Btn.onclick = () => {
+            if(!state.critUnlocked && state.gems >= 1) {
+                state.gems -= 1; state.critUnlocked = true; updateUI(); saveGame();
+            }
+        };
+        pmUp1Btn.onclick = () => {
+            let cost = Math.round(2 * Math.pow(1.5, state.gaiaBlessing));
+            if(state.gems >= cost) {
+                state.gems -= cost; state.gaiaBlessing += 1; updateUI(); saveGame();
+            }
+        };
+
+        const upEffects = [{ click: 1, passive: 0 }, { click: 0, passive: 1 }, { click: 4, passive: 0 }, { click: 0, passive: 8 }, { click: 20, passive: 0 }, { click: 0, passive: 50 }];
+        for(let i=0; i<6; i++) {
+            const btn = document.getElementById(`up-${i}`);
+            if(btn) {
+                btn.onclick = () => {
+                    if(state.energy >= state.upCosts[i]) {
+                        state.energy -= state.upCosts[i]; state.clickPower += upEffects[i].click; state.passiveIncome += upEffects[i].passive;
+                        state.upCosts[i] = Math.round(state.upCosts[i] * 1.55); updateUI(); saveGame();
+                    }
+                };
+            }
+        }
+
+        const flPassiveBonus = [0, 3, 15, 60, 180, 650, 2500];
+        for(let i=0; i<TOTAL_PLANTS; i++) {
+            const btn = document.getElementById(`fl-${i}`); if(!btn) continue;
+            btn.onclick = () => {
+                if (state.flowersOwned[i]) { state.activeSkin = i; plantScale = 1.25; updateUI(); saveGame(); }
+                else if (state.energy >= state.flCosts[i]) {
+                    state.energy -= state.flCosts[i]; state.passiveIncome += flPassiveBonus[i]; state.flowersOwned[i] = true; state.activeSkin = i;
+                    plantScale = 1.35; updateUI(); saveGame();
+                }
+            };
+        }
+
+        for(let i=0; i<TOTAL_PETS; i++) {
+            const btn = document.getElementById(`pet-${i}`); if(!btn) continue;
+            const petIncomeBonus = [5, 25, 90, 220, 800];
+            btn.onclick = () => {
+                if(!state.petsOwned[i] && state.energy >= state.petCosts[i]) {
+                    state.energy -= state.petCosts[i]; state.petsOwned[i] = true; state.passiveIncome += petIncomeBonus[i];
+                    spawnPurchasedPets(); updateUI(); saveGame();
+                }
+            };
+        }
+
+        for(let i=0; i<TOTAL_BGS; i++) {
+            const btn = document.getElementById(`bg-${i}`); if(btn) {
+                btn.onclick = () => {
+                    if(state.bgsOwned[i]) { state.activeBg = i; updateUI(); saveGame(); }
+                    else if(state.energy >= state.bgCosts[i]) {
+                        state.energy -= state.bgCosts[i]; state.bgsOwned[i] = true; state.activeBg = i; updateUI(); saveGame();
+                    }
+                };
+            }
+        }
+
+        document.getElementById('mkt-sell').onclick = () => {
+            let curClicks = state.plantClicks[state.activeSkin];
+            if(getStage(curClicks) === 3) {
+                let reward = 500 + (state.activeSkin * 400); state.energy += reward; state.plantClicks[state.activeSkin] = 0; plantScale = 0.5;
+                updateUI(); saveGame();
+            }
+        };
+
+        document.getElementById('mkt-buy-clicks').onclick = () => {
+            if(state.energy >= 150) {
+                state.energy -= 150; state.plantClicks[state.activeSkin] += 25; plantScale = 1.25; updateUI(); saveGame();
+            }
+        };
+
+        loadGame();
+        startBtn.onclick = () => { initAudio(); startScreen.style.display = 'none'; gameUi.style.display = 'block'; updateUI(); draw(); };
+    </script>
+</body>
+</html>
